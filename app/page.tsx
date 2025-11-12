@@ -1,99 +1,80 @@
 "use client";
-import { useEffect, useState } from "react";
 
-export default function Home() {
-  const [todos, setTodos] = useState<any[]>([]);
+import { useEffect, useState } from "react";
+import { getTodos, addTodo, toggleTodo, deleteTodo } from "../utils/api";
+
+interface Todo {
+  id: number;
+  text: string;
+  done: boolean;
+}
+
+export default function HomePage() {
+  const [todos, setTodos] = useState<Todo[]>([]);
   const [text, setText] = useState("");
 
-  // Fetch todos
-  const loadTodos = async () => {
-    const res = await fetch("/api/todos");
-    const data = await res.json();
-    setTodos(data);
-  };
-
   useEffect(() => {
-    loadTodos();
+    fetchTodos();
   }, []);
 
-  // Add new todo
-  const addTodo = async () => {
-    if (!text.trim()) return;
-    await fetch("/api/todos", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text, done: false }),
-    });
+  const fetchTodos = async () => {
+    const res = await getTodos();
+    setTodos(res.data);
+  };
+
+  const handleAdd = async () => {
+    if (!text) return;
+    await addTodo(text);
     setText("");
-    loadTodos();
+    fetchTodos();
   };
 
-  // Toggle done
-  const toggleDone = async (id: number) => {
-    await fetch("/api/todos", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id }),
-    });
-    loadTodos();
+  const handleToggle = async (id: number) => {
+    await toggleTodo(id);
+    fetchTodos();
   };
 
-  // Delete todo
-  const deleteTodo = async (id: number) => {
-    await fetch("/api/todos", {
-      method: "DELETE",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id }),
-    });
-    loadTodos();
+  const handleDelete = async (id: number) => {
+    await deleteTodo(id);
+    fetchTodos();
   };
 
   return (
-    <main className="p-10 max-w-xl mx-auto">
-      <h1 className="text-3xl font-bold mb-5 text-center">
-        📝 My To-Do App
-      </h1>
-
-      {/* Add form */}
-      <div className="flex gap-2 mb-5">
+    <div className="p-8">
+      <h1 className="text-3xl mb-4">My Full-Stack ToDo</h1>
+      <div className="mb-4">
         <input
+          className="border p-2 mr-2"
           value={text}
           onChange={(e) => setText(e.target.value)}
-          placeholder="Add a new task..."
-          className="border rounded p-2 flex-1"
+          placeholder="New Task"
         />
         <button
-          onClick={addTodo}
-          className="bg-blue-600 text-white px-4 py-2 rounded"
+          className="bg-blue-500 text-white px-4 py-2"
+          onClick={handleAdd}
         >
           Add
         </button>
       </div>
 
-      {/* List */}
-      <ul className="space-y-2">
-        {todos.map((todo) => (
-          <li
-            key={todo.id}
-            className="flex justify-between items-center border rounded p-2"
-          >
+      <ul>
+        {todos.map((t) => (
+          <li key={t.id} className="mb-2">
             <span
-              onClick={() => toggleDone(todo.id)}
-              className={`cursor-pointer ${
-                todo.done ? "line-through text-gray-400" : ""
-              }`}
+              onClick={() => handleToggle(t.id)}
+              className={`cursor-pointer ${t.done ? "line-through" : ""}`}
             >
-              {todo.text}
+              {t.text}
             </span>
             <button
-              onClick={() => deleteTodo(todo.id)}
-              className="text-red-600 hover:text-red-800"
+              className="ml-4 bg-red-500 text-white px-2 py-1"
+              onClick={() => handleDelete(t.id)}
             >
-              ✖
+              Delete
             </button>
           </li>
         ))}
       </ul>
-    </main>
+    </div>
   );
 }
