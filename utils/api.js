@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: "https://my-next-todo-fullstack-1.onrender.com/api",
+  baseURL: "https://my-next-todo-fullstack-3.onrender.com/api",
 });
 
 export const getTodos = () => API.get("/todos");
